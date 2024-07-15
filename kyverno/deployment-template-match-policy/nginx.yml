@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: kyverno
+spec:
+  selector:
+    matchLabels:
+      app: nginxdeployment
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: nginxdeployment
+    spec:
+      containers:
+      - name: nginxdeployment
+        image: nginx:latest
+        ports:
+        - containerPort: 80
+        livenessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          failureThreshold: 3
+          periodSeconds: 90
+          initialDelaySeconds: 30
+          timeoutSeconds: 30  
+        startupProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          failureThreshold: 900
+          periodSeconds: 2
+          timeoutSeconds: 30                    
+        readinessProbe:
+          httpGet:
+            path: /index.html
+            port: 80
+          failureThreshold: 3
+          periodSeconds: 90
+          initialDelaySeconds: 30
+          timeoutSeconds: 30              
+---                      
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+spec:
+  selector:
+    app: nginx
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP     
